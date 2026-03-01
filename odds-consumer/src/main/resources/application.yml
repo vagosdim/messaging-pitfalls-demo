@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: odds-consumer
+  rabbitmq:
+    listener:
+      simple:
+        # PROBLEM 5: Only 1 consumer - bottleneck!
+        concurrency: 1
+        # PROBLEM 6: Fetches too many messages - memory issues
+        prefetch: 1000
+
+app:
+  rabbitmq:
+    queue-name: odds-changes.queue
+    exchange-name: odds-changes.exchange
+    routing-key: odds.change
+  external-api:
+    base-url: http://localhost:9090
