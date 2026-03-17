@@ -3,7 +3,7 @@
     xmlns="http://maven.apache.org/POM/4.0.0"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
          https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <artifactId>sure-bet-validator-api</artifactId>
+    <artifactId>external-odds-provider</artifactId>
     <build>
         <plugins>
             <plugin>
@@ -22,7 +22,17 @@
     </build>
     <dependencies>
         <dependency>
+            <artifactId>spring-boot-starter</artifactId>
+            <groupId>org.springframework.boot</groupId>
+        </dependency>
+
+        <dependency>
             <artifactId>spring-boot-starter-web</artifactId>
+            <groupId>org.springframework.boot</groupId>
+        </dependency>
+
+        <dependency>
+            <artifactId>spring-boot-starter-amqp</artifactId>
             <groupId>org.springframework.boot</groupId>
         </dependency>
 
@@ -31,11 +41,28 @@
             <groupId>org.projectlombok</groupId>
             <optional>true</optional>
         </dependency>
+
+        <dependency>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <artifactId>slf4j-api</artifactId>
+            <groupId>org.slf4j</groupId>
+        </dependency>
+
+        <dependency>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
-    <description>Sure Bet Validator API</description>
+    <description>External Odds Provider for Messaging Pitfalls Demo</description>
     <groupId>com.agileactors</groupId>
     <modelVersion>4.0.0</modelVersion>
-    <name>sure-bet-validator-api</name>
+    <name>external-odds-provider</name>
 
     <parent>
         <artifactId>spring-boot-starter-parent</artifactId>

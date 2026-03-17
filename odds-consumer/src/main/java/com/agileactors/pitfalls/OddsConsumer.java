@@ -1,12 +1,12 @@
-package com.agileactors.validator;
+package com.agileactors.pitfalls;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SureBetValidatorApplication {
+public class OddsConsumer {
 
     public static void main(String[] args) {
-        SpringApplication.run(SureBetValidatorApplication.class, args);
+        SpringApplication.run(OddsConsumer.class, args);
     }
 }

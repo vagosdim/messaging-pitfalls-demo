@@ -13,28 +13,28 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @RequiredArgsConstructor
 public class RabbitMqConfig {
-    
+
     private final RabbitMqProperties properties;
-    
+
     @Bean
     public Queue oddsQueue() {
         return new Queue(properties.getQueueName(), true);
     }
-    
+
     @Bean
     public TopicExchange oddsExchange() {
         return new TopicExchange(properties.getExchangeName());
     }
-    
+
     @Bean
     public Binding binding(Queue oddsQueue, TopicExchange oddsExchange) {
         return BindingBuilder.bind(oddsQueue).to(oddsExchange).with(properties.getRoutingKey());
     }
-    
+
     @Bean
     public SimpleMessageListenerContainer messageListenerContainer(
-            ConnectionFactory connectionFactory,
-            OddsChangeProcessor processor) {
+        ConnectionFactory connectionFactory,
+        OddsChangeProcessor processor) {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
         container.setQueueNames(properties.getQueueName());

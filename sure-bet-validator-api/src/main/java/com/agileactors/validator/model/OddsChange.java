@@ -1,10 +1,11 @@
 package com.agileactors.validator.model;
 
-import lombok.Data;
 import java.time.Instant;
+import lombok.Data;
 
 @Data
 public class OddsChange {
+
     private long id;
     private String eventId;
     private String marketId;

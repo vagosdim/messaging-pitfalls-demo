@@ -1,10 +1,14 @@
 package com.agileactors.pitfalls.model;
 
 import java.time.Instant;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-public class OddsChange {
+@NoArgsConstructor
+@AllArgsConstructor
+public class OddsMessage {
 
     private long id;
     private String eventId;

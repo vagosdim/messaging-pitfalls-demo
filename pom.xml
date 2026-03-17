@@ -12,5 +12,6 @@
     <modules>
         <module>odds-consumer</module>
         <module>sure-bet-validator-api</module>
+        <module>external-odds-provider</module>
     </modules>
 </project>

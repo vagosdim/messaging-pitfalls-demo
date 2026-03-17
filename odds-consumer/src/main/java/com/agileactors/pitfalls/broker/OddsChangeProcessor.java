@@ -1,7 +1,7 @@
 package com.agileactors.pitfalls.broker;
 
-import com.agileactors.pitfalls.model.OddsValidationResponse;
 import com.agileactors.pitfalls.model.OddsChange;
+import com.agileactors.pitfalls.model.OddsValidationResponse;
 import com.agileactors.pitfalls.repository.OddsChangeRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
@@ -35,7 +35,7 @@ public class OddsChangeProcessor implements ChannelAwareMessageListener {
 
         try {
             String oddsJson = new String(message.getBody());
-            
+
             // PROBLEM 1: Strict deserialization - fails on unknown properties
             // If producer adds new field, ObjectMapper throws UnrecognizedPropertyException
             // Message becomes poison pill → infinite retry or lost
@@ -45,18 +45,18 @@ public class OddsChangeProcessor implements ChannelAwareMessageListener {
             // PROBLEM 2: Blocking call in listener thread (3 sec)
             log.info("Validating odds for event {} with external service...", oddsChange.getEventId());
             OddsValidationResponse validation = restClient.post()
-                    .uri("/validate-odds")
-                    .body(oddsChange)
-                    .retrieve()
-                    .body(OddsValidationResponse.class);
+                .uri("/validate-odds")
+                .body(oddsChange)
+                .retrieve()
+                .body(OddsValidationResponse.class);
 
             if (!validation.valid()) {
                 // PROBLEM 3: No dead letter handling - business-rejected messages lost
                 // RabbitMQ: Should route to Dead Letter Exchange (DLX) → DLQ
                 // Kafka: Should publish to Dead Letter Topic (DLT)
                 // Currently: ACK + discard = permanent data loss, no audit trail
-                log.warn("Odds change {} has sure bet detected (margin: {}%), discarding", 
-                        oddsChange.getId(), validation.margin());
+                log.warn("Odds change {} has sure bet detected (margin: {}%), discarding",
+                    oddsChange.getId(), validation.margin());
                 channel.basicAck(deliveryTag, false);
                 return;
             }
@@ -70,10 +70,10 @@ public class OddsChangeProcessor implements ChannelAwareMessageListener {
             // PROBLEM 6: Another blocking call (2 sec)
             log.info("Broadcasting odds change {} to clients", oddsChange.getId());
             restClient.post()
-                    .uri("/broadcast")
-                    .body(oddsChange)
-                    .retrieve()
-                    .toBodilessEntity();
+                .uri("/broadcast")
+                .body(oddsChange)
+                .retrieve()
+                .toBodilessEntity();
 
             channel.basicAck(deliveryTag, false);
             log.info("Successfully processed odds change {}, deliveryTag={}", oddsChange.getId(), deliveryTag);
