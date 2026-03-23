@@ -1,3 +1,6 @@
+server:
+  port: 8081
+
 spring:
   application:
     name: external-odds-provider
@@ -6,12 +9,9 @@ spring:
     port: 5672
     username: guest
     password: guest
-
 app:
   rabbitmq:
     queue-name: odds-changes.queue
     exchange-name: odds-changes.exchange
     routing-key: odds.change
 
-server:
-  port: 8081

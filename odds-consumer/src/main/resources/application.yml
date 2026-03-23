@@ -1,7 +1,14 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: odds-consumer
   rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
     listener:
       simple:
         # PROBLEM 5: Only 1 consumer - bottleneck!
@@ -15,4 +22,4 @@ app:
     exchange-name: odds-changes.exchange
     routing-key: odds.change
   external-api:
-    base-url: http://localhost:9090
+    base-url: http://localhost:8082

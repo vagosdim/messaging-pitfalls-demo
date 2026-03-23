@@ -38,15 +38,15 @@ public class OddsProducerController {
     public ResponseEntity<String> publishBulk(@RequestParam int count,
         @RequestParam(defaultValue = "sample-odds.json") String filename) {
         try {
-            OddsMessage template = messageLoader.loadMessage(filename);
+            OddsMessage oddsMessage = messageLoader.loadMessage(filename);
             for (int i = 0; i < count; i++) {
                 OddsMessage message = new OddsMessage(
                     i,
-                    template.getEventId() + "-" + i,
-                    template.getMarketId(),
-                    template.getHomeOdds(),
-                    template.getDrawOdds(),
-                    template.getAwayOdds(),
+                    oddsMessage.getEventId() + "-" + i,
+                    oddsMessage.getMarketId(),
+                    oddsMessage.getHomeOdds(),
+                    oddsMessage.getDrawOdds(),
+                    oddsMessage.getAwayOdds(),
                     Instant.now()
                 );
                 oddsPublisher.publishOdds(message);

@@ -3,10 +3,10 @@ package com.agileactors.pitfalls.service;
 import com.agileactors.pitfalls.model.OddsMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.InputStream;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,11 +14,14 @@ import org.springframework.stereotype.Service;
 public class MessageLoader {
 
     private final ObjectMapper objectMapper;
+    private final ResourceLoader resourceLoader;
 
     public OddsMessage loadMessage(String filename) throws IOException {
-        String path = "messages/" + filename;
-        ClassPathResource resource = new ClassPathResource(path);
-        String content = new String(Files.readAllBytes(Paths.get(resource.getFile().getPath())));
-        return objectMapper.readValue(content, OddsMessage.class);
+        String path = "classpath:messages/" + filename;
+        Resource resource = resourceLoader.getResource(path);
+        try (InputStream inputStream = resource.getInputStream()) {
+            String content = new String(inputStream.readAllBytes());
+            return objectMapper.readValue(content, OddsMessage.class);
+        }
     }
 }

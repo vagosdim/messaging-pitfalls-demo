@@ -1,4 +1,4 @@
-package com.agileactors.pitfalls.broker;
+/*package com.agileactors.pitfalls.broker;
 
 import com.agileactors.pitfalls.model.OddsChange;
 import com.agileactors.pitfalls.model.OddsValidationResponse;
@@ -19,7 +19,7 @@ import org.springframework.web.client.RestClientException;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class OddsChangeProcessor implements ChannelAwareMessageListener {
+public class OddsChangeProcessorCopy implements ChannelAwareMessageListener {
 
     private final RestClient restClient;
     private final OddsChangeRepository oddsChangeRepository;
@@ -96,4 +96,4 @@ public class OddsChangeProcessor implements ChannelAwareMessageListener {
         // No backward compatibility when message format evolves
         return objectMapper.readValue(json, OddsChange.class);
     }
-}
+}*/

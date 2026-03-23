@@ -1,0 +1,15 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: message-broker
+    ports:
+      - "5672:5672"      # AMQP Port
+      - "15672:15672"    # Management UI (guest/guest)
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
