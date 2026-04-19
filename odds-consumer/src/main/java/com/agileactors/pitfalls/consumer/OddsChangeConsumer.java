@@ -1,10 +1,10 @@
 package com.agileactors.pitfalls.consumer;
 
+import com.agileactors.pitfalls.broker.MessageParseException;
 import com.agileactors.pitfalls.broker.MessageParser;
 import com.agileactors.pitfalls.model.OddsChange;
 import com.agileactors.pitfalls.model.OddsValidationResponse;
 import com.agileactors.pitfalls.repository.OddsChangeRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.rabbitmq.client.Channel;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
@@ -33,12 +33,14 @@ public class OddsChangeConsumer {
 
         try {
             OddsChange oddsChange = messageParser.parseMessage(message);
-            validateOdds(oddsChange, channel, deliveryTag);
+            if (!areOddsValid(oddsChange, channel, deliveryTag)) {
+                return;
+            }
             saveOddsChange(oddsChange);
             channel.basicAck(deliveryTag, false);
             log.info("Successfully processed odds change {}, deliveryTag={}", oddsChange.getId(), deliveryTag);
 
-        } catch (JsonProcessingException e) {
+        } catch (MessageParseException e) {
             /* P1 - Infinite Loop
              * Log error, reject message, and don't requeue to avoid infinite loop
              */
@@ -55,7 +57,7 @@ public class OddsChangeConsumer {
         }
     }
 
-    private void validateOdds(OddsChange oddsChange, Channel channel, long deliveryTag) throws IOException {
+    private boolean areOddsValid(OddsChange oddsChange, Channel channel, long deliveryTag) throws IOException {
         log.info("Validating odds for event {} with external service...", oddsChange.getEventId());
         OddsValidationResponse validation = restClient.post()
             .uri("/validate-odds")
@@ -67,7 +69,9 @@ public class OddsChangeConsumer {
             log.warn("Odds change {} has sure bet detected (margin: {}%), discarding",
                 oddsChange.getId(), validation.margin());
             channel.basicAck(deliveryTag, false);
+            return false;
         }
+        return true;
     }
 
     private void saveOddsChange(OddsChange oddsChange) {
