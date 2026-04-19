@@ -25,3 +25,10 @@ app:
     routing-key: odds.change
   external-api:
     base-url: http://localhost:8082/api/validator
+
+logging:
+  level:
+    sun:
+      rmi:
+        transport:
+          tcp: OFF

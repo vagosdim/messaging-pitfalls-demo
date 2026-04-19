@@ -15,3 +15,9 @@ app:
     exchange-name: odds-changes.exchange
     routing-key: odds.change
 
+logging:
+  level:
+    sun:
+      rmi:
+        transport:
+          tcp: OFF

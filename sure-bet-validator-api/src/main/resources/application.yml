@@ -5,3 +5,9 @@ spring:
   application:
     name: sure-bet-validator-api
 
+logging:
+  level:
+    sun:
+      rmi:
+        transport:
+          tcp: OFF
