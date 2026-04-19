@@ -12,7 +12,7 @@ public class RestClientConfig {
     @Bean
     public RestClient restClient(ApiProperties properties) {
         return RestClient.builder()
-            .baseUrl(properties.getBaseUrl())
+            .baseUrl(properties.baseUrl())
             .build();
     }
 }
