@@ -15,8 +15,17 @@ public class OddsPublisher {
     private final RabbitTemplate rabbitTemplate;
     private final RabbitMqProperties properties;
 
-    public void publishOdds(OddsMessage message) {
-        log.info("Publishing odds message: {}", message);
-        rabbitTemplate.convertAndSend(properties.getExchangeName(), properties.getRoutingKey(), message);
+    public void publishOdds(OddsMessage oddsMessage) {
+        log.info("Publishing odds message: {}", oddsMessage);
+        rabbitTemplate.convertAndSend(properties.getExchangeName(), properties.getRoutingKey(), oddsMessage);
+    }
+
+    public void publishOddsWithMessageId(OddsMessage oddsMessage, String messageId) {
+        log.info("Publishing odds message with messageId={}: {}", messageId, oddsMessage);
+        rabbitTemplate.convertAndSend(properties.getExchangeName(), properties.getRoutingKey(), oddsMessage,
+            message -> {
+                message.getMessageProperties().setMessageId(messageId);
+                return message;
+            });
     }
 }

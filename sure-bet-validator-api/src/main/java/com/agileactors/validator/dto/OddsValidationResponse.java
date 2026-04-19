@@ -1,4 +1,4 @@
-package com.agileactors.validator.model;
+package com.agileactors.validator.dto;
 
 public record OddsValidationResponse(boolean valid, String reason, Double margin) {
 

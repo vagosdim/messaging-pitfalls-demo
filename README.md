@@ -9,7 +9,7 @@ RabbitMQ consumer application that processes odds changes with intentional messa
 **Port:** 8080
 
 ### sure-bet-validator-api
-External API that validates odds for sure bet scenarios and broadcasts changes.
+External API that validates odds for sure bet scenarios.
 
 **Run:** `cd sure-bet-validator-api && mvn spring-boot:run`
 **Port:** 9090

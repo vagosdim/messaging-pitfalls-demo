@@ -1,8 +1,8 @@
-package com.agileactors.pitfalls.model;
+package com.agileactors.validator.dto;
 
 import java.time.Instant;
 
-public record OddsMessage(
+public record OddsValidationRequest(
     long id,
     String eventId,
     String marketId,

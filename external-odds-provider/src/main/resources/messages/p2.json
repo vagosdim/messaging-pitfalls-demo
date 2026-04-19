@@ -1,0 +1,11 @@
+{
+  "id": 1,
+  "eventId": "EVENT-001",
+  "marketId": "MARKET-001",
+  "homeOdds": 2.5,
+  "drawOdds": 3.0,
+  "awayOdds": 2.8,
+  "timestamp": "2024-01-15T10:30:00Z",
+  "scope": "LIVE"
+}
+

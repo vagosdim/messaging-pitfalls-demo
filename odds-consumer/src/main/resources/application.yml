@@ -22,4 +22,4 @@ app:
     exchange-name: odds-changes.exchange
     routing-key: odds.change
   external-api:
-    base-url: http://localhost:8082
+    base-url: http://localhost:8082/api/validator
