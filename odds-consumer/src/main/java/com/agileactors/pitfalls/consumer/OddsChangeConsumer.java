@@ -1,82 +1,53 @@
 package com.agileactors.pitfalls.consumer;
 
-import com.agileactors.pitfalls.broker.MessageParseException;
-import com.agileactors.pitfalls.broker.MessageParser;
-import com.agileactors.pitfalls.model.OddsChange;
-import com.agileactors.pitfalls.model.OddsValidationResponse;
-import com.agileactors.pitfalls.repository.OddsChangeRepository;
+import com.agileactors.pitfalls.service.OddsChangeProcessor;
 import com.rabbitmq.client.Channel;
-import java.io.IOException;
-import lombok.RequiredArgsConstructor;
+import java.util.concurrent.ExecutorService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientException;
 
 @Component
 @Slf4j
-@RequiredArgsConstructor
 public class OddsChangeConsumer {
 
-    private final RestClient restClient;
-    private final OddsChangeRepository oddsChangeRepository;
-    private final MessageParser messageParser;
+    private final OddsChangeProcessor processor;
+    private final ExecutorService workerPool;
+    private final ExecutorService ackExecutor;
+
+    public OddsChangeConsumer(OddsChangeProcessor processor, @Qualifier("workerPool") ExecutorService workerPool,
+        @Qualifier("ackExecutor") ExecutorService ackExecutor) {
+        this.processor = processor;
+        this.workerPool = workerPool;
+        this.ackExecutor = ackExecutor;
+    }
 
     @RabbitListener(queues = "${app.rabbitmq.queue-name}")
-    public void onMessage(Message message, Channel channel) throws IOException {
+    public void onMessage(Message message, Channel channel) {
         long deliveryTag = message.getMessageProperties().getDeliveryTag();
-        String messageId = message.getMessageProperties().getMessageId();
-
         log.info("Received odds change message, deliveryTag={}", deliveryTag);
 
-        try {
-            OddsChange oddsChange = messageParser.parseMessage(message);
-            if (!areOddsValid(oddsChange, channel, deliveryTag)) {
-                return;
-            }
-            saveOddsChange(oddsChange);
-            channel.basicAck(deliveryTag, false);
-            log.info("Successfully processed odds change {}, deliveryTag={}", oddsChange.getId(), deliveryTag);
-
-        } catch (MessageParseException e) {
-            /* P1 - Infinite Loop
-             * Log error, reject message, and don't requeue to avoid infinite loop
-             */
-            log.error("Failed to parse message, dropping. deliveryTag={}, error={}", deliveryTag, e.getMessage());
-            channel.basicReject(deliveryTag, false);
-
-        } catch (RestClientException e) {
-            log.error("External service failed for deliveryTag={}, message lost", deliveryTag, e);
-            channel.basicAck(deliveryTag, false);
-
-        } catch (Exception e) {
-            log.error("Processing failed for deliveryTag={}", deliveryTag, e);
-            channel.basicNack(deliveryTag, false, true);
-        }
-    }
-
-    private boolean areOddsValid(OddsChange oddsChange, Channel channel, long deliveryTag) throws IOException {
-        log.info("Validating odds for event {} with external service...", oddsChange.getEventId());
-        OddsValidationResponse validation = restClient.post()
-            .uri("/validate-odds")
-            .body(oddsChange)
-            .retrieve()
-            .body(OddsValidationResponse.class);
-
-        if (!validation.valid()) {
-            log.warn("Odds change {} has sure bet detected (margin: {}%), discarding",
-                oddsChange.getId(), validation.margin());
-            channel.basicAck(deliveryTag, false);
-            return false;
-        }
-        return true;
-    }
-
-    private void saveOddsChange(OddsChange oddsChange) {
-        log.info("Saving odds change {} to database", oddsChange.getId());
-        oddsChangeRepository.save(oddsChange);
+        /* P3 - Throughput Collapse
+         * Offload processing to worker pool to prevent blocking the listener thread,
+         * and use a separate executor for acknowledgments to ensure timely ACKs even under load.
+         */
+        workerPool.submit(() -> {
+            Action action = processor.process(message);
+            ackExecutor.submit(() -> {
+                try {
+                    switch (action) {
+                        case ACK -> channel.basicAck(deliveryTag, false);
+                        case REJECT -> channel.basicReject(deliveryTag, false);
+                        case RETRY -> channel.basicNack(deliveryTag, false, true);
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to ack/nack message, deliveryTag={}", deliveryTag, e);
+                }
+            });
+        });
     }
 
 }
+
