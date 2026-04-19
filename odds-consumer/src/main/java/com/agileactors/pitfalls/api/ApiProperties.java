@@ -1,11 +1,8 @@
 package com.agileactors.pitfalls.api;
 
-import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@Data
 @ConfigurationProperties(prefix = "app.external-api")
-public class ApiProperties {
+public record ApiProperties(String baseUrl) {
 
-    private String baseUrl;
 }

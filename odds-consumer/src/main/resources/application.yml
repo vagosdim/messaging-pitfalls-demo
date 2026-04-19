@@ -11,10 +11,12 @@ spring:
     password: guest
     listener:
       simple:
-        # PROBLEM 5: Only 1 consumer - bottleneck!
+        # With AUTO, if processing crashes after Spring ACKs but before you finish processing, message is lost forever
+        # With MANUAL, you ACK only after successful processing → if it crashes, RabbitMQ redelivers
+        # Gives you control over basicNack + dead-letter routing on failure
+        acknowledge-mode: manual
+        prefetch: 250
         concurrency: 1
-        # PROBLEM 6: Fetches too many messages - memory issues
-        prefetch: 1000
 
 app:
   rabbitmq:
