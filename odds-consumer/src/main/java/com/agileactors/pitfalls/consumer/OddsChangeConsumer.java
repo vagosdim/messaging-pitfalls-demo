@@ -1,13 +1,12 @@
 package com.agileactors.pitfalls.consumer;
 
+import com.agileactors.pitfalls.broker.MessageParser;
 import com.agileactors.pitfalls.model.OddsChange;
 import com.agileactors.pitfalls.model.OddsValidationResponse;
 import com.agileactors.pitfalls.repository.OddsChangeRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -23,7 +22,7 @@ public class OddsChangeConsumer {
 
     private final RestClient restClient;
     private final OddsChangeRepository oddsChangeRepository;
-    private final ObjectMapper objectMapper;
+    private final MessageParser messageParser;
 
     @RabbitListener(queues = "${app.rabbitmq.queue-name}")
     public void onMessage(Message message, Channel channel) throws IOException {
@@ -33,8 +32,7 @@ public class OddsChangeConsumer {
         log.info("Received odds change message, deliveryTag={}", deliveryTag);
 
         try {
-            String oddsJson = new String(message.getBody(), StandardCharsets.UTF_8);
-            OddsChange oddsChange = parseOddsChange(oddsJson);
+            OddsChange oddsChange = messageParser.parseMessage(message);
             validateOdds(oddsChange, channel, deliveryTag);
             saveOddsChange(oddsChange);
             channel.basicAck(deliveryTag, false);
@@ -55,10 +53,6 @@ public class OddsChangeConsumer {
             log.error("Processing failed for deliveryTag={}", deliveryTag, e);
             channel.basicNack(deliveryTag, false, true);
         }
-    }
-
-    private OddsChange parseOddsChange(String json) throws IOException {
-        return objectMapper.readValue(json, OddsChange.class);
     }
 
     private void validateOdds(OddsChange oddsChange, Channel channel, long deliveryTag) throws IOException {
