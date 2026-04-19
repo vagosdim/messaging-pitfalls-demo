@@ -3,9 +3,11 @@ package com.agileactors.pitfalls.consumer;
 import com.agileactors.pitfalls.model.OddsChange;
 import com.agileactors.pitfalls.model.OddsValidationResponse;
 import com.agileactors.pitfalls.repository.OddsChangeRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -31,28 +33,20 @@ public class OddsChangeConsumer {
         log.info("Received odds change message, deliveryTag={}", deliveryTag);
 
         try {
-            String oddsJson = new String(message.getBody());
+            String oddsJson = new String(message.getBody(), StandardCharsets.UTF_8);
             OddsChange oddsChange = parseOddsChange(oddsJson);
-
-            log.info("Validating odds for event {} with external service...", oddsChange.getEventId());
-            OddsValidationResponse validation = restClient.post()
-                .uri("/validate-odds")
-                .body(oddsChange)
-                .retrieve()
-                .body(OddsValidationResponse.class);
-
-            if (!validation.valid()) {
-                log.warn("Odds change {} has sure bet detected (margin: {}%), discarding",
-                    oddsChange.getId(), validation.margin());
-                channel.basicAck(deliveryTag, false);
+            if (!areOddsValid(oddsChange, channel, deliveryTag)) {
                 return;
             }
-
-            log.info("Saving odds change {} to database", oddsChange.getId());
-            oddsChangeRepository.save(oddsChange);
-
-            channel.basicAck(deliveryTag, false);
+            saveOddsChange(oddsChange);
             log.info("Successfully processed odds change {}, deliveryTag={}", oddsChange.getId(), deliveryTag);
+            channel.basicAck(deliveryTag, false);
+        } catch (JsonProcessingException e) {
+            /* P1 - Infinite Loop
+             * Log error, reject message, and don't requeue to avoid infinite loop
+             */
+            log.error("Failed to parse message, dropping. deliveryTag={}, error={}", deliveryTag, e.getMessage());
+            channel.basicReject(deliveryTag, false);
 
         } catch (RestClientException e) {
             log.error("External service failed for deliveryTag={}, message lost", deliveryTag, e);
@@ -67,4 +61,27 @@ public class OddsChangeConsumer {
     private OddsChange parseOddsChange(String json) throws IOException {
         return objectMapper.readValue(json, OddsChange.class);
     }
+
+    private boolean areOddsValid(OddsChange oddsChange, Channel channel, long deliveryTag) throws IOException {
+        log.info("Validating odds for event {} with external service...", oddsChange.getEventId());
+        OddsValidationResponse validation = restClient.post()
+            .uri("/validate-odds")
+            .body(oddsChange)
+            .retrieve()
+            .body(OddsValidationResponse.class);
+
+        if (!validation.valid()) {
+            log.warn("Odds change {} has sure bet detected (margin: {}%), discarding",
+                oddsChange.getId(), validation.margin());
+            channel.basicAck(deliveryTag, false);
+            return false;
+        }
+        return true;
+    }
+
+    private void saveOddsChange(OddsChange oddsChange) {
+        log.info("Saving odds change {} to database", oddsChange.getId());
+        oddsChangeRepository.save(oddsChange);
+    }
+
 }
