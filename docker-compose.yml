@@ -16,7 +16,7 @@ services:
 
   redis:
     image: redis:7
-    container_name: message-redis
+    container_name: redis-cache
     ports:
       - "6379:6379"
     healthcheck:
@@ -24,4 +24,3 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
