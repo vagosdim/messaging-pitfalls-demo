@@ -9,6 +9,6 @@ import org.springframework.stereotype.Repository;
 public class OddsChangeRepository {
 
     public void save(OddsChange oddsChange) {
-        log.info("Saving odds change to database: {}", oddsChange);
+        log.info("Saving OddsChange to database: {}", oddsChange);
     }
 }
