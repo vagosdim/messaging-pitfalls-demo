@@ -48,11 +48,10 @@ public class OddsChangeConsumer {
                 return;
             }
 
-            log.info("Saving odds change {} to database", oddsChange.getId());
             oddsChangeRepository.save(oddsChange);
 
             channel.basicAck(deliveryTag, false);
-            log.info("Successfully processed odds change {}, deliveryTag={}", oddsChange.getId(), deliveryTag);
+            log.info("Successfully processed OddsChange, messageId={}, deliveryTag={}", oddsChange.getId(), deliveryTag);
 
         } catch (RestClientException e) {
             log.error("External service failed for deliveryTag={}, message lost", deliveryTag, e);

@@ -165,47 +165,7 @@ if (!validation.valid()) {
 
 ---
 
-## Pitfall 6 — External Service Failure → Message Lost, No Retry
-
-**Pitfall:** `RestClientException` caught and ACK'd — transient network hiccup or service restart, message gone forever. Comment in original code even says *"message lost"*.
-
-```java
-} catch (RestClientException e) {
-    log.error("External service failed, message lost", deliveryTag, e);
-    channel.basicAck(deliveryTag, false); // ← lost
-}
-```
-
-**Fix — RabbitMQ native retry via TTL + DLX:**
-```java
-} catch (RestClientException e) {
-    log.error("External service failed, requeueing. deliveryTag={}", deliveryTag, e);
-    channel.basicNack(deliveryTag, false, false); // → retry queue
-}
-
-@Bean
-Queue retryQueue() {
-    return QueueBuilder.durable("odds.retry")
-        .withArgument("x-dead-letter-exchange", "odds.exchange")
-        .withArgument("x-message-ttl", 5000) // wait 5s before retry
-        .build();
-}
-```
-
-**Flow:**
-```
-main queue → RestClientException → nack
-→ retry queue (wait 5s) → main queue
-→ retry → exhausted → DLQ
-```
-
-**Demo:** Kill `/validate-odds` service mid-consumption — show messages ACK'd and lost. Apply fix, restart service after 5s — show messages successfully retried.
-
-**Broker:** Pitfall identical on both. Fix differs — RabbitMQ uses TTL+DLX, Kafka uses `DefaultErrorHandler` + `FixedBackOff`. ✅ Both.
-
----
-
-## Pitfall 7 — No Idempotency → Duplicate DB Rows
+## Pitfall 6 — No Idempotency → Duplicate DB Rows
 
 **Pitfall:** `messageId` is extracted on line 2 but never used anywhere. On redelivery or duplicate publish, `save()` runs again — duplicate rows, wrong odds, potential financial exposure.
 
@@ -232,9 +192,9 @@ oddsChangeRepository.save(oddsValidationRequest);
 
 ---
 
-## Pitfall 8 — Naive In-Memory Deduplication → Redis
+## Pitfall 7 — Naive In-Memory Deduplication → Redis
 
-**Pitfall:** Developer attempts to fix (7) with in-memory Set — each attempt better than the last but all critically flawed.
+**Pitfall:** Developer attempts to fix (6) with in-memory Set — each attempt better than the last but all critically flawed.
 
 ```java
 // Attempt 1 — not thread-safe
@@ -285,6 +245,5 @@ redisTemplate.opsForValue().set(
 | 3 | Blocking thread | Performance | Introduce ExecutorService |
 | 4 | Out of order | Ordering | Direct consequence of (3) |
 | 5 | Sure bet lost | Business logic | First ACK/DLQ concept |
-| 6 | No retry | Reliability | Extends ACK/nack from (5) |
-| 7 | No idempotency | Delivery guarantee | At-least-once bites you |
-| 8 | Naive cache | Fix evolution | Natural continuation of (7) |
+| 6 | No idempotency | Delivery guarantee | At-least-once bites you |
+| 7 | Naive cache | Fix evolution | Natural continuation of (7) |
