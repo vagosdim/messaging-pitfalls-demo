@@ -38,7 +38,7 @@ public class OddsChangeConsumer {
             }
             saveOddsChange(oddsChange);
             channel.basicAck(deliveryTag, false);
-            log.info("Successfully processed odds change {}, deliveryTag={}", oddsChange.getId(), deliveryTag);
+            log.info("Successfully processed OddsChange with messageId={}, deliveryTag={}", oddsChange.getId(), deliveryTag);
 
         } catch (MessageParseException e) {
             /* P1 - Infinite Loop
@@ -75,7 +75,6 @@ public class OddsChangeConsumer {
     }
 
     private void saveOddsChange(OddsChange oddsChange) {
-        log.info("Saving odds change {} to database", oddsChange.getId());
         oddsChangeRepository.save(oddsChange);
     }
 
