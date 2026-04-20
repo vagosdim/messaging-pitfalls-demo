@@ -21,12 +21,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class OddsProducerController {
 
+    private static final long OFFSET = 1000L;
+
     private final OddsPublisher oddsPublisher;
     private final MessageLoader messageLoader;
 
     /**
-     * P1 — Malformed JSON P2 — Schema drift P5 — Sure bet lost P6 — External service down (default, then kill
-     * validator)
+     * P1 — Malformed JSON <br>
+     * P2 — Schema drift  <br>
+     * P5 — Sure bet lost <br>
      */
     @PostMapping("/publish")
     public ResponseEntity<ProducerResponse> publishOdds(@RequestParam(defaultValue = "sample-odds.json") String filename)
@@ -45,8 +48,8 @@ public class OddsProducerController {
         OddsMessage oddsMessage = messageLoader.loadMessage(filename);
         for (int i = 0; i < count; i++) {
             OddsMessage message = new OddsMessage(
-                oddsMessage.id(),
-                oddsMessage.eventId() + "-" + i,
+                oddsMessage.id() + i,
+                i + OFFSET,
                 oddsMessage.marketId(),
                 oddsMessage.homeOdds(),
                 oddsMessage.drawOdds(),
@@ -64,15 +67,15 @@ public class OddsProducerController {
      */
     @PostMapping("/publish-out-of-order")
     public ResponseEntity<ProducerResponse> publishOutOfOrder() throws IOException {
-        OddsMessage slow = messageLoader.loadMessage("p4a.json");
-        OddsMessage fast = messageLoader.loadMessage("p4b.json");
+        OddsMessage slow = messageLoader.loadMessage("p4-slow.json");
+        OddsMessage fast = messageLoader.loadMessage("p4-fast.json");
         oddsPublisher.publishOdds(slow);
         oddsPublisher.publishOdds(fast);
         return ResponseEntity.ok(ProducerResponse.ok("Published 2 messages for same eventId (out-of-order demo)"));
     }
 
     /**
-     * P7/P8 — No idempotency / Naive dedup
+     * P6/P7 — No idempotency / Naive dedup
      */
     @PostMapping("/publish-duplicate")
     public ResponseEntity<ProducerResponse> publishDuplicate(
