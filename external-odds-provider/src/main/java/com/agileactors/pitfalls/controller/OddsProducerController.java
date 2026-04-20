@@ -28,9 +28,8 @@ public class OddsProducerController {
 
     /**
      * P1 — Malformed JSON <br>
-     * P2 — Schema drift <br>
+     * P2 — Schema drift  <br>
      * P5 — Sure bet lost <br>
-     * P6 — External service down (default, then kill validator)
      */
     @PostMapping("/publish")
     public ResponseEntity<ProducerResponse> publishOdds(@RequestParam(defaultValue = "sample-odds.json") String filename)
@@ -76,7 +75,7 @@ public class OddsProducerController {
     }
 
     /**
-     * P7/P8 — No idempotency / Naive dedup
+     * P6/P7 — No idempotency / Naive dedup
      */
     @PostMapping("/publish-duplicate")
     public ResponseEntity<ProducerResponse> publishDuplicate(
