@@ -7,14 +7,14 @@ package com.agileactors.pitfalls.cache;
 public interface MessageCacheService {
 
     /**
-     * Check if message was already processed
+     * Check if the message was already processed
      * @param messageId the unique identifier of the message
-     * @return true if message was already processed, false otherwise
+     * @return true if the message was already processed, false otherwise
      */
     boolean isAlreadyProcessed(String messageId);
 
     /**
-     * Mark message as processed to prevent duplicate processing
+     * Mark the message as processed to prevent duplicate processing
      * @param messageId the unique identifier of the message
      */
     void markAsProcessed(String messageId);
