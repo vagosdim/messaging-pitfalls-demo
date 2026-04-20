@@ -4,8 +4,8 @@ import java.time.Instant;
 
 public record OddsValidationRequest(
     long id,
-    String eventId,
-    String marketId,
+    long eventId,
+    long marketId,
     double homeOdds,
     double drawOdds,
     double awayOdds,
