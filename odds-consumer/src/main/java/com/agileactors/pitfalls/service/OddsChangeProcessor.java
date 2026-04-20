@@ -4,6 +4,7 @@ import com.agileactors.pitfalls.broker.MessageParseException;
 import com.agileactors.pitfalls.broker.MessageParser;
 import com.agileactors.pitfalls.consumer.Action;
 import com.agileactors.pitfalls.model.OddsChange;
+import com.agileactors.pitfalls.model.OddsChangeEntity;
 import com.agileactors.pitfalls.model.OddsValidationResponse;
 import com.agileactors.pitfalls.repository.OddsChangeRepository;
 import lombok.RequiredArgsConstructor;
@@ -71,7 +72,15 @@ public class OddsChangeProcessor {
     }
 
     private void saveOddsChange(OddsChange oddsChange) {
-        log.info("Saving odds change {} to database", oddsChange.getId());
-        oddsChangeRepository.save(oddsChange);
+        log.info("Saving odds change {} to database (upsert by marketId)", oddsChange.getId());
+        OddsChangeEntity entity = oddsChangeRepository.findByMarketId(oddsChange.getMarketId())
+            .orElseGet(OddsChangeEntity::new);
+        entity.setEventId(oddsChange.getEventId());
+        entity.setMarketId(oddsChange.getMarketId());
+        entity.setHomeOdds(oddsChange.getHomeOdds());
+        entity.setDrawOdds(oddsChange.getDrawOdds());
+        entity.setAwayOdds(oddsChange.getAwayOdds());
+        entity.setTimestamp(oddsChange.getTimestamp());
+        oddsChangeRepository.save(entity);
     }
 }

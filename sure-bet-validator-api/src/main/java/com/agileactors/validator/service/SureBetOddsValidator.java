@@ -18,6 +18,10 @@ public class SureBetOddsValidator implements OddsValidator {
     public OddsValidationResponse validateOdds(OddsValidationRequest oddsValidationRequest) throws InterruptedException {
         log.info("Validating odds for event: {}, market: {}",
             oddsValidationRequest.eventId(), oddsValidationRequest.marketId());
+        if (oddsValidationRequest.id() == 1000) {
+            log.info("test");
+            Thread.sleep(VALIDATION_DELAY_MS + 2);
+        }
         Thread.sleep(VALIDATION_DELAY_MS);
 
         double impliedProbability = calculateImpliedProbability(oddsValidationRequest);
