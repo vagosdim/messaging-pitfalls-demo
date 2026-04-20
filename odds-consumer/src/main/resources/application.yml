@@ -43,6 +43,9 @@ app:
     queue-name: odds-changes.queue
     exchange-name: odds-changes.exchange
     routing-key: odds.change
+    dlx-name: odds-changes.dlx
+    dlq-name: odds-changes.dlq
+    dlq-routing-key: odds.change.dlq
   external-api:
     base-url: http://localhost:8082/api/validator
   worker:

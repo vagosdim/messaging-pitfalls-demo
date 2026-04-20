@@ -29,8 +29,11 @@ public class OddsChangeProcessor {
         try {
             OddsChange oddsChange = messageParser.parseMessage(message);
             if (!areOddsValid(oddsChange)) {
-                log.warn("Odds change {} has sure bet detected, discarding", oddsChange.getId());
-                return Action.ACK;
+                /* P5 - Silent ACK Message Lost
+                 * Log the event, and route the message to DLQ
+                 */
+                log.warn("Odds change {} has sure bet detected, routing to DLQ", oddsChange.getId());
+                return Action.REJECT;
             }
 
             saveOddsChange(oddsChange);
@@ -41,7 +44,7 @@ public class OddsChangeProcessor {
             /* P1 - Infinite Loop
              * Log error, reject message, and don't requeue to avoid infinite loop
              */
-            log.error("Failed to parse message, dropping. deliveryTag={}, error={}", deliveryTag, e.getMessage());
+            log.error("Failed to parse message, routing to DLQ. deliveryTag={}, error={}", deliveryTag, e.getMessage());
             return Action.REJECT;
 
         } catch (RestClientException e) {
