@@ -2,6 +2,7 @@ package com.agileactors.pitfalls.service;
 
 import com.agileactors.pitfalls.broker.MessageParseException;
 import com.agileactors.pitfalls.broker.MessageParser;
+import com.agileactors.pitfalls.cache.MessageCacheServiceImpl;
 import com.agileactors.pitfalls.consumer.Action;
 import com.agileactors.pitfalls.entity.OddsChangeEntity;
 import com.agileactors.pitfalls.model.OddsChange;
@@ -22,9 +23,19 @@ public class OddsChangeProcessor {
     private final RestClient restClient;
     private final OddsChangeRepository oddsChangeRepository;
     private final MessageParser messageParser;
+    private final MessageCacheServiceImpl messageCacheService;
 
     public Action process(Message message) {
         long deliveryTag = message.getMessageProperties().getDeliveryTag();
+        String messageId = message.getMessageProperties().getMessageId();
+
+        /* P6/P7 - Idempotency Guard
+         * Check if message was already processed to avoid duplicate processing
+         */
+        if (messageCacheService.isAlreadyProcessed(messageId)) {
+            log.warn("Duplicate message detected, messageId={}, skipping processing", messageId);
+            return Action.ACK;
+        }
 
         try {
             OddsChange oddsChange = messageParser.parseMessage(message);
@@ -37,6 +48,7 @@ public class OddsChangeProcessor {
             }
 
             saveOddsChange(oddsChange);
+            messageCacheService.markAsProcessed(messageId);
             log.info("Successfully processed odds change {}, deliveryTag={}", oddsChange.getId(), deliveryTag);
             return Action.ACK;
 
