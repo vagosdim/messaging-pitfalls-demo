@@ -45,6 +45,9 @@ app:
     routing-key: odds.change
   external-api:
     base-url: http://localhost:8082/api/validator
+  worker:
+    pool:
+      size: 10
 
 logging:
   level:

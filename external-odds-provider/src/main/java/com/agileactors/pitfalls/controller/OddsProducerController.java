@@ -21,12 +21,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class OddsProducerController {
 
+    private static final long OFFSET = 1000L;
+
     private final OddsPublisher oddsPublisher;
     private final MessageLoader messageLoader;
 
     /**
-     * P1 — Malformed JSON P2 — Schema drift P5 — Sure bet lost P6 — External service down (default, then kill
-     * validator)
+     * P1 — Malformed JSON <br>
+     * P2 — Schema drift <br>
+     * P5 — Sure bet lost <br>
+     * P6 — External service down (default, then kill validator)
      */
     @PostMapping("/publish")
     public ResponseEntity<ProducerResponse> publishOdds(@RequestParam(defaultValue = "sample-odds.json") String filename)
@@ -46,7 +50,7 @@ public class OddsProducerController {
         for (int i = 0; i < count; i++) {
             OddsMessage message = new OddsMessage(
                 oddsMessage.id() + i,
-                oddsMessage.eventId(),
+                i + OFFSET, // Ensure unique eventId for each message
                 oddsMessage.marketId(),
                 oddsMessage.homeOdds(),
                 oddsMessage.drawOdds(),
@@ -64,8 +68,8 @@ public class OddsProducerController {
      */
     @PostMapping("/publish-out-of-order")
     public ResponseEntity<ProducerResponse> publishOutOfOrder() throws IOException {
-        OddsMessage slow = messageLoader.loadMessage("p4a.json");
-        OddsMessage fast = messageLoader.loadMessage("p4b.json");
+        OddsMessage slow = messageLoader.loadMessage("p4-slow.json");
+        OddsMessage fast = messageLoader.loadMessage("p4-fast.json");
         oddsPublisher.publishOdds(slow);
         oddsPublisher.publishOdds(fast);
         return ResponseEntity.ok(ProducerResponse.ok("Published 2 messages for same eventId (out-of-order demo)"));
