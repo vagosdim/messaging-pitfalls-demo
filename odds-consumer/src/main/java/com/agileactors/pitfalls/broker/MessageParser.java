@@ -24,10 +24,11 @@ public class MessageParser {
 
     private final ObjectMapper objectMapper;
 
-    /* P2 - Silent Schema Drift
-     * i) Check schema version, if available
-     * ii) Parse message fields as Map to detect unknown fields without re-parsing
-     * iii) Convert Map to OddsChange (no re-parsing)
+    /**
+     * P2 - Silent Schema Drift <br>
+     * i) Check schema version, if available <br>
+     * ii) Parse message fields as Map to detect unknown fields without re-parsing <br>
+     * iii) Convert Map to OddsChange (no re-parsing)  <br>
      */
     public OddsChange parseMessage(Message message) throws MessageParseException {
         try {
