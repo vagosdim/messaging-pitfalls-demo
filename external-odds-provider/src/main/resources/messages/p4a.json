@@ -1,7 +1,7 @@
 {
   "id": 1000,
-  "eventId": "EVENT-001",
-  "marketId": "MARKET-001",
+  "eventId": 10000,
+  "marketId": 20000,
   "homeOdds": 2.5,
   "drawOdds": 3.0,
   "awayOdds": 2.8,

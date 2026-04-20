@@ -15,12 +15,13 @@ public class SureBetOddsValidator implements OddsValidator {
     private static final String VALID_MESSAGE = "Odds are valid";
     private static final String SURE_BET_MESSAGE = "Sure bet detected";
 
-    public OddsValidationResponse validateOdds(OddsValidationRequest oddsValidationRequest) throws InterruptedException {
+    public OddsValidationResponse validateOdds(OddsValidationRequest oddsValidationRequest)
+        throws InterruptedException {
         log.info("Validating odds for event: {}, market: {}",
             oddsValidationRequest.eventId(), oddsValidationRequest.marketId());
         if (oddsValidationRequest.id() == 1000) {
-            log.info("test");
-            Thread.sleep(VALIDATION_DELAY_MS + 2);
+            log.info("Deliberately slowing down validation for request: {}", oddsValidationRequest.id());
+            Thread.sleep(VALIDATION_DELAY_MS + 3);
         }
         Thread.sleep(VALIDATION_DELAY_MS);
 

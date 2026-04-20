@@ -1,4 +1,4 @@
-package com.agileactors.pitfalls.model;
+package com.agileactors.pitfalls.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,20 +11,20 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(
-    name = "odds_change_entity", uniqueConstraints = {
-    @jakarta.persistence.UniqueConstraint(columnNames = {"marketId"})
-})
+@Table(name = "odds_changes")
 public class OddsChangeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String eventId;
-    @Column(nullable = false)
-    private String marketId;
-    private double homeOdds;
-    private double drawOdds;
-    private double awayOdds;
+
+    private Long eventId;
+
+    @Column(unique = true, nullable = false)
+    private Long marketId;
+
+    private Double homeOdds;
+    private Double drawOdds;
+    private Double awayOdds;
     private Instant timestamp;
 }

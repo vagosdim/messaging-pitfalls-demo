@@ -7,8 +7,8 @@ import lombok.Data;
 public class OddsChange {
 
     private long id;
-    private String eventId;
-    private String marketId;
+    private long eventId;
+    private long marketId;
     private double homeOdds;
     private double drawOdds;
     private double awayOdds;

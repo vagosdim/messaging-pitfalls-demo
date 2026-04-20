@@ -45,8 +45,8 @@ public class OddsProducerController {
         OddsMessage oddsMessage = messageLoader.loadMessage(filename);
         for (int i = 0; i < count; i++) {
             OddsMessage message = new OddsMessage(
-                oddsMessage.id(),
-                oddsMessage.eventId() + "-" + i,
+                oddsMessage.id() + i,
+                oddsMessage.eventId(),
                 oddsMessage.marketId(),
                 oddsMessage.homeOdds(),
                 oddsMessage.drawOdds(),

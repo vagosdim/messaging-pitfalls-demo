@@ -3,8 +3,8 @@ package com.agileactors.pitfalls.service;
 import com.agileactors.pitfalls.broker.MessageParseException;
 import com.agileactors.pitfalls.broker.MessageParser;
 import com.agileactors.pitfalls.consumer.Action;
+import com.agileactors.pitfalls.entity.OddsChangeEntity;
 import com.agileactors.pitfalls.model.OddsChange;
-import com.agileactors.pitfalls.model.OddsChangeEntity;
 import com.agileactors.pitfalls.model.OddsValidationResponse;
 import com.agileactors.pitfalls.repository.OddsChangeRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,6 @@ public class OddsChangeProcessor {
 
         try {
             OddsChange oddsChange = messageParser.parseMessage(message);
-
             if (!areOddsValid(oddsChange)) {
                 log.warn("Odds change {} has sure bet detected, discarding", oddsChange.getId());
                 return Action.ACK;
@@ -72,7 +71,8 @@ public class OddsChangeProcessor {
     }
 
     private void saveOddsChange(OddsChange oddsChange) {
-        log.info("Saving odds change {} to database (upsert by marketId)", oddsChange.getId());
+        log.info("Saving marketId={} for event=Id={} to database (upsert by marketId)", oddsChange.getMarketId(),
+            oddsChange.getEventId());
         OddsChangeEntity entity = oddsChangeRepository.findByMarketId(oddsChange.getMarketId())
             .orElseGet(OddsChangeEntity::new);
         entity.setEventId(oddsChange.getEventId());
