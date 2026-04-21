@@ -58,7 +58,7 @@ app:
     pool:
       size: 10
   cache:
-    type: caffeine # or redis
+    type: redis # or caffeine
     message-id:
       duration-minutes: 10
       max-size: 10000
