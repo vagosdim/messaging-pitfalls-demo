@@ -22,6 +22,10 @@ public class OddsPublisher {
             message -> addEventIdHeader(message, oddsMessage));
     }
 
+    /**
+     * P6 - Idempotency <br>
+     * This method allows publishing messages with a specific messageId, which can be used by consumers to ensure idempotency.
+     */
     public void publishOddsWithMessageId(OddsMessage oddsMessage, String messageId) {
         log.info("Publishing odds message with messageId={}: {}", messageId, oddsMessage);
         rabbitTemplate.convertAndSend(properties.getExchangeName(), properties.getRoutingKey(), oddsMessage,
