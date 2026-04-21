@@ -27,7 +27,7 @@ public class OddsChangeConsumer {
     @RabbitListener(queues = "${app.rabbitmq.queue-name}")
     public void onMessage(Message message, Channel channel) {
         long deliveryTag = message.getMessageProperties().getDeliveryTag();
-        log.info("Received odds change message, deliveryTag={}", deliveryTag);
+        log.info("Received OddsChange message, deliveryTag={}", deliveryTag);
 
         /* P3 - Throughput Collapse
          * Offload processing to worker pool to prevent blocking the listener thread,

@@ -29,12 +29,12 @@ public class OddsChangeProcessor {
         try {
             OddsChange oddsChange = messageParser.parseMessage(message);
             if (!areOddsValid(oddsChange)) {
-                log.warn("Odds change {} has sure bet detected, discarding", oddsChange.getId());
+                log.warn("OddsChange={} has sure bet detected, discarding", oddsChange.getId());
                 return Action.ACK;
             }
 
             saveOddsChange(oddsChange);
-            log.info("Successfully processed odds change {}, deliveryTag={}", oddsChange.getId(), deliveryTag);
+            log.info("Successfully processed OddsChange={}, deliveryTag={}", oddsChange.getId(), deliveryTag);
             return Action.ACK;
 
         } catch (MessageParseException e) {
@@ -55,7 +55,7 @@ public class OddsChangeProcessor {
     }
 
     private boolean areOddsValid(OddsChange oddsChange) {
-        log.info("Validating odds for event {} with external service...", oddsChange.getEventId());
+        log.info("Validating odds for marketId={} with external service...", oddsChange.getMarketId());
         OddsValidationResponse validation = restClient.post()
             .uri("/validate-odds")
             .body(oddsChange)
@@ -63,15 +63,17 @@ public class OddsChangeProcessor {
             .body(OddsValidationResponse.class);
 
         if (!validation.valid()) {
-            log.warn("Odds change {} has sure bet detected (margin: {}%)",
-                oddsChange.getId(), validation.margin());
+            log.warn(
+                "OddsChange={} with home={}, draw={}, away={}, has sure bet detected (margin: {}%), discarding",
+                oddsChange.getId(), oddsChange.getHomeOdds(), oddsChange.getDrawOdds(), oddsChange.getAwayOdds(),
+                validation.margin());
             return false;
         }
         return true;
     }
 
     private void saveOddsChange(OddsChange oddsChange) {
-        log.info("Saving marketId={} for event=Id={} to database (upsert by marketId)", oddsChange.getMarketId(),
+        log.info("Saving marketId={} for eventId={} to database (upsert by marketId)", oddsChange.getMarketId(),
             oddsChange.getEventId());
         OddsChangeEntity entity = oddsChangeRepository.findByMarketId(oddsChange.getMarketId())
             .orElseGet(OddsChangeEntity::new);
