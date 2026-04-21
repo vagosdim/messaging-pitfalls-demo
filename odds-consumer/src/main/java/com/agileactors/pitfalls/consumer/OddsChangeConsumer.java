@@ -22,7 +22,7 @@ public class OddsChangeConsumer {
     @RabbitListener(queues = "${app.rabbitmq.queue-name}")
     public void onMessage(Message message, Channel channel) {
         long deliveryTag = message.getMessageProperties().getDeliveryTag();
-        log.info("Received odds change message, deliveryTag={}", deliveryTag);
+        log.info("Received OddsChange message, deliveryTag={}", deliveryTag);
         long eventId = (long) message.getMessageProperties().getHeaders().get("eventId");
 
         /* P3 - Throughput Collapse
