@@ -29,7 +29,7 @@ public class OddsChangeConsumer {
         long deliveryTag = message.getMessageProperties().getDeliveryTag();
         String messageId = message.getMessageProperties().getMessageId();
 
-        log.info("Received odds change message, deliveryTag={}", deliveryTag);
+        log.info("Received OddsChange message, deliveryTag={}", deliveryTag);
 
         try {
             OddsChange oddsChange = messageParser.parseMessage(message);
@@ -58,7 +58,7 @@ public class OddsChangeConsumer {
     }
 
     private boolean areOddsValid(OddsChange oddsChange, Channel channel, long deliveryTag) throws IOException {
-        log.info("Validating odds for event {} with external service...", oddsChange.getEventId());
+        log.info("Validating odds for marketId={} with external service...", oddsChange.getMarketId());
         OddsValidationResponse validation = restClient.post()
             .uri("/validate-odds")
             .body(oddsChange)
@@ -66,8 +66,10 @@ public class OddsChangeConsumer {
             .body(OddsValidationResponse.class);
 
         if (!validation.valid()) {
-            log.warn("Odds change {} has sure bet detected (margin: {}%), discarding",
-                oddsChange.getId(), validation.margin());
+            log.warn(
+                "OddsChange={} with home={}, draw={}, away={}, has sure bet detected (margin: {}%), discarding",
+                oddsChange.getId(), oddsChange.getHomeOdds(), oddsChange.getDrawOdds(), oddsChange.getAwayOdds(),
+                validation.margin());
             channel.basicAck(deliveryTag, false);
             return false;
         }
