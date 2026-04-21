@@ -34,7 +34,8 @@ public class OddsChangeProcessor {
             }
 
             saveOddsChange(oddsChange);
-            log.info("Successfully processed OddsChange with messageId={}, deliveryTag={}", oddsChange.getId(), deliveryTag);
+            log.info("Successfully processed OddsChange with messageId={}, deliveryTag={}", oddsChange.getId(),
+                deliveryTag);
             return Action.ACK;
 
         } catch (MessageParseException e) {
@@ -55,7 +56,7 @@ public class OddsChangeProcessor {
     }
 
     private boolean areOddsValid(OddsChange oddsChange) {
-        log.info("Validating odds for event {} with external service...", oddsChange.getEventId());
+        log.info("Validating odds for marketId={} with external service...", oddsChange.getMarketId());
         OddsValidationResponse validation = restClient.post()
             .uri("/validate-odds")
             .body(oddsChange)
@@ -63,8 +64,10 @@ public class OddsChangeProcessor {
             .body(OddsValidationResponse.class);
 
         if (!validation.valid()) {
-            log.warn("Odds change {} has sure bet detected (margin: {}%)",
-                oddsChange.getId(), validation.margin());
+            log.warn(
+                "OddsChange={} with home={}, draw={}, away={}, has sure bet detected (margin: {}%), discarding",
+                oddsChange.getId(), oddsChange.getHomeOdds(), oddsChange.getDrawOdds(), oddsChange.getAwayOdds(),
+                validation.margin());
             return false;
         }
         return true;
