@@ -28,13 +28,13 @@ public class OddsChangeConsumer {
         long deliveryTag = message.getMessageProperties().getDeliveryTag();
         String messageId = message.getMessageProperties().getMessageId();
 
-        log.info("Received odds change message, deliveryTag={}", deliveryTag);
+        log.info("Received OddsChange message, deliveryTag={}", deliveryTag);
 
         try {
             String oddsJson = new String(message.getBody());
             OddsChange oddsChange = parseOddsChange(oddsJson);
 
-            log.info("Validating odds for event {} with external service...", oddsChange.getEventId());
+            log.info("Validating odds for marketId={} with external service...", oddsChange.getMarketId());
             OddsValidationResponse validation = restClient.post()
                 .uri("/validate-odds")
                 .body(oddsChange)
@@ -42,8 +42,10 @@ public class OddsChangeConsumer {
                 .body(OddsValidationResponse.class);
 
             if (!validation.valid()) {
-                log.warn("Odds change {} has sure bet detected (margin: {}%), discarding",
-                    oddsChange.getId(), validation.margin());
+                log.warn(
+                    "OddsChange={} with home={}, draw={}, away={}, has sure bet detected (margin: {}%), discarding",
+                    oddsChange.getId(), oddsChange.getHomeOdds(), oddsChange.getDrawOdds(), oddsChange.getAwayOdds(),
+                    validation.margin());
                 channel.basicAck(deliveryTag, false);
                 return;
             }
@@ -51,7 +53,8 @@ public class OddsChangeConsumer {
             oddsChangeRepository.save(oddsChange);
 
             channel.basicAck(deliveryTag, false);
-            log.info("Successfully processed OddsChange, messageId={}, deliveryTag={}", oddsChange.getId(), deliveryTag);
+            log.info("Successfully processed OddsChange, messageId={}, deliveryTag={}", oddsChange.getId(),
+                deliveryTag);
 
         } catch (RestClientException e) {
             log.error("External service failed for deliveryTag={}, message lost", deliveryTag, e);
