@@ -67,8 +67,8 @@ public class OddsProducerController {
      */
     @PostMapping("/publish-out-of-order")
     public ResponseEntity<ProducerResponse> publishOutOfOrder() throws IOException {
-        OddsMessage slow = messageLoader.loadMessage("p4-slow.json");
-        OddsMessage fast = messageLoader.loadMessage("p4-fast.json");
+        OddsMessage slow = messageLoader.loadMessage("p4-first.json");
+        OddsMessage fast = messageLoader.loadMessage("p4-second.json");
         oddsPublisher.publishOdds(slow);
         oddsPublisher.publishOdds(fast);
         return ResponseEntity.ok(ProducerResponse.ok("Published 2 messages for same eventId (out-of-order demo)"));
